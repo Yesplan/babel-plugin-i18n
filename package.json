@@ -1,0 +1,15 @@
+{
+  "name": "babel-plugin-i18n",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "./node_modules/.bin/jest test\n"
+  },
+  "dependencies": {
+    "@babel/generator": "^7.5.5"
+  },
+  "devDependencies": {
+    "babel-plugin-tester": "^7.0.1",
+    "jest": "^24.9.0"
+  }
+}
