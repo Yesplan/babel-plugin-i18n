@@ -1,23 +1,22 @@
-const generate = require('@babel/generator')['default'];
+const generate = require("@babel/generator")["default"];
 
 module.exports = {
   processFirstArgumentOfCall: function(path, t) {
-    const firstArgument = path.get('arguments')[0];
+    const firstArgument = path.get("arguments")[0];
     if (t.isStringLiteral(firstArgument.node)) {
       return {
-        type: 'stringLiteral',
-        argument: t.ObjectExpression([
-          t.ObjectProperty(t.Identifier('id'), t.StringLiteral(firstArgument.node.value)),
-          t.ObjectProperty(
-            t.Identifier('defaultMessage'),
-            t.StringLiteral(firstArgument.node.value)
-          )
-        ])
+        type: "stringLiteral",
+        argument: this.createIntlMessage(t, firstArgument.node.value)
       };
     } else {
       return {
-        type: 'other',
-        argument: firstArgument
+        type: "other",
+        original: firstArgument,
+        argument: this.createCallExpression(
+          t,
+          this.createReturnMessageFunction(t),
+          [firstArgument.node]
+        )
       };
     }
   },
@@ -25,7 +24,7 @@ module.exports = {
   warnAboutNonStringLiteralArguments: function(nonStringLiterals, filename) {
     const argString = nonStringLiterals.map(arg => {
       const loc = arg.node.loc;
-      let lineNr = '//';
+      let lineNr = "//";
       if (loc) lineNr = loc.start.line.toString();
       const code = generate(arg.parent).code;
       return `\t- line ${lineNr}: ${code}\n`;
@@ -38,12 +37,12 @@ module.exports = {
 
   isI18nMessageCall: function(callee) {
     if (!callee.isMemberExpression()) return false;
-    const object = callee.get('object');
-    const property = callee.get('property');
+    const object = callee.get("object");
+    const property = callee.get("property");
 
     return (
       property.isIdentifier() &&
-      property.node.name === 'i18n' &&
+      property.node.name === "i18n" &&
       /* this.i18n(...) */
       (object.isThisExpression() ||
         /* props.i18n(...) */
@@ -61,53 +60,73 @@ module.exports = {
   /* AST nodes */
   createIntlMessage(t, message) {
     return t.ObjectExpression([
-      t.ObjectProperty(t.Identifier('id'), t.StringLiteral(message)),
-      t.ObjectProperty(t.Identifier('defaultMessage'), t.StringLiteral(message))
+      t.ObjectProperty(t.Identifier("id"), t.StringLiteral(message)),
+      t.ObjectProperty(t.Identifier("defaultMessage"), t.StringLiteral(message))
     ]);
   },
-
+  /* function(m) {return {id: m, defaultMessage: m}; } */
+  createReturnMessageFunction(t) {
+    return t.FunctionExpression(
+      null,
+      [t.Identifier("m")],
+      t.BlockStatement([
+        t.returnStatement(
+          t.ObjectExpression([
+            t.ObjectProperty(t.Identifier("id"), t.Identifier("m")),
+            t.ObjectProperty(t.Identifier("defaultMessage"), t.Identifier("m"))
+          ])
+        )
+      ])
+    );
+  },
+  createCallExpression(t, functionToCall, callArguments) {
+    return t.callExpression(functionToCall, callArguments);
+  },
   createFormatMessageCall(t, path, firstArgument) {
     let memberExpression;
     let callArguments = [];
-    const callee = path.get('callee');
-    const object = callee.isMemberExpression() && callee.get('object');
+    const callee = path.get("callee");
+    const object = callee.isMemberExpression() && callee.get("object");
 
     /* We search for intl and props in the scope.
       If intl is in scope, the call is of the form intl.formatMessage,
       if props is in scope, the call is of the form props.intl.formatMessage,
       otherwise this.props.intl is used.
      */
-    if (path.scope.hasBinding('intl')) {
+    if (path.scope.hasBinding("intl")) {
       memberExpression = t.MemberExpression(
-        t.identifier('intl'),
-        t.identifier('formatMessage')
+        t.identifier("intl"),
+        t.identifier("formatMessage")
       );
-    } else if (path.scope.hasBinding('props') && !(object && t.isThisExpression(object))) {
+    } else if (
+      path.scope.hasBinding("props") &&
+      !(object && t.isThisExpression(object))
+    ) {
       memberExpression = t.MemberExpression(
-        t.MemberExpression(t.identifier('props'), t.identifier('intl')),
-        t.identifier('formatMessage')
+        t.MemberExpression(t.identifier("props"), t.identifier("intl")),
+        t.identifier("formatMessage")
       );
     } else {
       memberExpression = t.MemberExpression(
         t.MemberExpression(
-          t.MemberExpression(t.ThisExpression(), t.identifier('props')),
-          t.identifier('intl')
+          t.MemberExpression(t.ThisExpression(), t.identifier("props")),
+          t.identifier("intl")
         ),
-        t.identifier('formatMessage')
+        t.identifier("formatMessage")
       );
     }
     if (firstArgument) {
       callArguments = [
         firstArgument,
         ...path
-          .get('arguments')
+          .get("arguments")
           .slice(1)
           .map(function(path) {
             return path.node;
           })
       ];
     } else {
-      callArguments = path.get('arguments').map(function(path) {
+      callArguments = path.get("arguments").map(function(path) {
         return path.node;
       });
     }

@@ -50,3 +50,18 @@ function functionWithDifferentThisScopes(props) {
     });
   };
 }
+
+function functionWithDifferentScopes2() {
+  const intl = this.props.intl;
+
+  const innerFunction = function () {
+    intl.formatMessage({
+      id: "translation in scope",
+      defaultMessage: "translation in scope"
+    });
+    intl.formatMessage({
+      id: "translation in this scope",
+      defaultMessage: "translation in this scope"
+    });
+  };
+}

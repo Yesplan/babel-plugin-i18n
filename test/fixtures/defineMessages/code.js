@@ -19,5 +19,12 @@ function getMessage() {
 
 function functionThatTranslates(intl) {
   const message = getMessage();
-  return i18n(messages[message]);
+  return i18n(message);
+}
+
+
+function functionThatTranslates2(intl) {
+  const options = ["translation message1", "translation message2"];
+  const random = Math.floor(Math.random());
+  return i18n(options[random % 2]);
 }

@@ -26,3 +26,11 @@ function functionWithDifferentThisScopes(props) {
     i18n('translation in props scope');
   }
 }
+
+function functionWithDifferentScopes2() {
+  const intl = this.props.intl;
+  const innerFunction = function() {
+    i18n('translation in scope');
+    this.i18n('translation in this scope');
+  }
+}

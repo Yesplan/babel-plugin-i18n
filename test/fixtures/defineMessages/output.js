@@ -17,5 +17,22 @@ function getMessage() {
 
 function functionThatTranslates(intl) {
   const message = getMessage();
-  return intl.formatMessage(messages[message]);
+  return intl.formatMessage(function (m) {
+    return {
+      id: m,
+      defaultMessage: m
+    };
+  }(message));
 }
+
+function functionThatTranslates2(intl) {
+  const options = ["translation message1", "translation message2"];
+  const random = Math.floor(Math.random());
+  return intl.formatMessage(function (m) {
+    return {
+      id: m,
+      defaultMessage: m
+    };
+  }(options[random % 2]));
+}
+
