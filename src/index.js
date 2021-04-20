@@ -10,7 +10,7 @@ module.exports = function({ types: t }) {
 
   function processI18nCall(path) {
     const transformedFirstArg = Helpers.processFirstArgumentOfCall(path, t);
-    if (transformedFirstArg.type === "stringLiteral") {
+    if (transformedFirstArg.type === "stringLiteral" || transformedFirstArg.type === 'templateLiteral') {
       path.replaceWith(
         Helpers.createFormatMessageCall(t, path, transformedFirstArg.argument)
       );

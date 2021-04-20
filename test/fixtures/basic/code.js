@@ -10,6 +10,24 @@ function functionWithoutIntlAndProps() {
   i18n('translation message');
 }
 
+function functionWithIntlTemplateLiteral(intl) {
+  const someone = 'hello world';
+  i18n(`translation message`);
+  i18n(`translation message from ${someone}`)
+}
+
+function functionWithPropsTemplateLiteral(props) {
+  const someone = 'hello world';
+  i18n(`translation message`);
+  i18n(`translation message from ${someone}`)
+}
+
+function functionWithoutIntlAndPropsTemplateLiteral() {
+  const someone = 'hello world';
+  i18n(`translation message`);
+  i18n(`translation message from ${someone}`)
+}
+
 function functionWithMultipleCalls(intl, arg1, arg2) {
   const msg = i18n('translation message');
   if(arg1 === arg2)

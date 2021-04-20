@@ -6,8 +6,13 @@ module.exports = {
     if (t.isStringLiteral(firstArgument.node)) {
       return {
         type: "stringLiteral",
-        argument: this.createIntlMessage(t, firstArgument.node.value)
+        argument: this.createIntlMessage(t, t.StringLiteral(firstArgument.node.value))
       };
+    } else if(t.isTemplateLiteral(firstArgument.node)) {
+      return {
+        type: "templateLiteral",
+        argument: this.createIntlMessage(t, t.templateLiteral(firstArgument.node.quasis, firstArgument.node.expressions))
+      }
     } else {
       return {
         type: "other",
@@ -58,10 +63,10 @@ module.exports = {
   },
 
   /* AST nodes */
-  createIntlMessage(t, message) {
+  createIntlMessage(t, messageNode) {
     return t.ObjectExpression([
-      t.ObjectProperty(t.Identifier("id"), t.StringLiteral(message)),
-      t.ObjectProperty(t.Identifier("defaultMessage"), t.StringLiteral(message))
+      t.ObjectProperty(t.Identifier("id"), messageNode),
+      t.ObjectProperty(t.Identifier("defaultMessage"), messageNode)
     ]);
   },
   /* function(m) {return {id: m, defaultMessage: m}; } */

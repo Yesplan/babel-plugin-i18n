@@ -19,6 +19,42 @@ function functionWithoutIntlAndProps() {
   });
 }
 
+function functionWithIntlTemplateLiteral(intl) {
+  const someone = 'hello world';
+  intl.formatMessage({
+    id: `translation message`,
+    defaultMessage: `translation message`
+  });
+  intl.formatMessage({
+    id: `translation message from ${someone}`,
+    defaultMessage: `translation message from ${someone}`
+  });
+}
+
+function functionWithPropsTemplateLiteral(props) {
+  const someone = 'hello world';
+  props.intl.formatMessage({
+    id: `translation message`,
+    defaultMessage: `translation message`
+  });
+  props.intl.formatMessage({
+    id: `translation message from ${someone}`,
+    defaultMessage: `translation message from ${someone}`
+  });
+}
+
+function functionWithoutIntlAndPropsTemplateLiteral() {
+  const someone = 'hello world';
+  this.props.intl.formatMessage({
+    id: `translation message`,
+    defaultMessage: `translation message`
+  });
+  this.props.intl.formatMessage({
+    id: `translation message from ${someone}`,
+    defaultMessage: `translation message from ${someone}`
+  });
+}
+
 function functionWithMultipleCalls(intl, arg1, arg2) {
   const msg = intl.formatMessage({
     id: "translation message",
