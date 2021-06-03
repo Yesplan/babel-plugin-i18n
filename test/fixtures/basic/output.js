@@ -1,8 +1,26 @@
+const someone = 'Einstein';
+const subject = 'relativity';
+
 function functionWithIntl(intl) {
   intl.formatMessage({
     id: "translation message",
     defaultMessage: "translation message"
   });
+  intl.formatMessage({
+    id: "translation message",
+    defaultMessage: "translation message"
+  }, []);
+  intl.formatMessage({
+    id: "translation message from {someone} about {subject}",
+    defaultMessage: "translation message from {someone} about {subject}"
+  }, {
+    someone,
+    subject
+  });
+  intl.formatMessage({
+    id: "translation message from {0} about {1}",
+    defaultMessage: "translation message from {0} about {1}"
+  }, [someone, subject]);
 }
 
 function functionWithProps(props) {
@@ -10,6 +28,21 @@ function functionWithProps(props) {
     id: "translation message",
     defaultMessage: "translation message"
   });
+  props.intl.formatMessage({
+    id: "translation message",
+    defaultMessage: "translation message"
+  }, []);
+  props.intl.formatMessage({
+    id: "translation message from {someone} about {subject}",
+    defaultMessage: "translation message from {someone} about {subject}"
+  }, {
+    someone,
+    subject
+  });
+  props.intl.formatMessage({
+    id: "translation message from {0} about {1}",
+    defaultMessage: "translation message from {0} about {1}"
+  }, [someone, subject]);
 }
 
 function functionWithoutIntlAndProps() {
@@ -17,42 +50,21 @@ function functionWithoutIntlAndProps() {
     id: "translation message",
     defaultMessage: "translation message"
   });
-}
-
-function functionWithIntlTemplateLiteral(intl) {
-  const someone = 'hello world';
-  intl.formatMessage({
-    id: `translation message`,
-    defaultMessage: `translation message`
-  });
-  intl.formatMessage({
-    id: `translation message from ${someone}`,
-    defaultMessage: `translation message from ${someone}`
-  });
-}
-
-function functionWithPropsTemplateLiteral(props) {
-  const someone = 'hello world';
-  props.intl.formatMessage({
-    id: `translation message`,
-    defaultMessage: `translation message`
-  });
-  props.intl.formatMessage({
-    id: `translation message from ${someone}`,
-    defaultMessage: `translation message from ${someone}`
-  });
-}
-
-function functionWithoutIntlAndPropsTemplateLiteral() {
-  const someone = 'hello world';
   this.props.intl.formatMessage({
-    id: `translation message`,
-    defaultMessage: `translation message`
+    id: "translation message",
+    defaultMessage: "translation message"
+  }, []);
+  this.props.intl.formatMessage({
+    id: "translation message from {someone} about {subject}",
+    defaultMessage: "translation message from {someone} about {subject}"
+  }, {
+    someone,
+    subject
   });
   this.props.intl.formatMessage({
-    id: `translation message from ${someone}`,
-    defaultMessage: `translation message from ${someone}`
-  });
+    id: "translation message from {0} about {1}",
+    defaultMessage: "translation message from {0} about {1}"
+  }, [someone, subject]);
 }
 
 function functionWithMultipleCalls(intl, arg1, arg2) {

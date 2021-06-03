@@ -18,9 +18,9 @@ module.exports = {
         type: "other",
         original: firstArgument,
         argument: this.createCallExpression(
-          t,
-          this.createReturnMessageFunction(t),
-          [firstArgument.node]
+            t,
+            this.createReturnMessageFunction(t),
+            [firstArgument.node]
         )
       };
     }
@@ -35,7 +35,7 @@ module.exports = {
       return `\t- line ${lineNr}: ${code}\n`;
     });
     console.warn(
-      `\nWARNING i18n called with non-string literal in ${filename}: \n ${argString}` +
+        `\nWARNING i18n called with non-string literal in ${filename}: \n ${argString}` +
         ` ==> Use defineMessages from the react-intl package to make sure these translations are picked up.`
     );
   },
@@ -46,14 +46,14 @@ module.exports = {
     const property = callee.get("property");
 
     return (
-      property.isIdentifier() &&
-      property.node.name === "i18n" &&
-      /* this.i18n(...) */
-      (object.isThisExpression() ||
-        /* props.i18n(...) */
-        (object.isIdentifier() ||
-          /* this.props.i18n(...) */
-          object.isMemberExpression()))
+        property.isIdentifier() &&
+        property.node.name === "i18n" &&
+        /* this.i18n(...) */
+        (object.isThisExpression() ||
+            /* props.i18n(...) */
+            (object.isIdentifier() ||
+                /* this.props.i18n(...) */
+                object.isMemberExpression()))
     );
   },
 
@@ -72,25 +72,24 @@ module.exports = {
   /* function(m) {return {id: m, defaultMessage: m}; } */
   createReturnMessageFunction(t) {
     return t.FunctionExpression(
-      null,
-      [t.Identifier("m")],
-      t.BlockStatement([
-        t.returnStatement(
-          t.ObjectExpression([
-            t.ObjectProperty(t.Identifier("id"), t.Identifier("m")),
-            t.ObjectProperty(t.Identifier("defaultMessage"), t.Identifier("m"))
-          ])
-        )
-      ])
+        null,
+        [t.Identifier("m")],
+        t.BlockStatement([
+          t.returnStatement(
+              t.ObjectExpression([
+                t.ObjectProperty(t.Identifier("id"), t.Identifier("m")),
+                t.ObjectProperty(t.Identifier("defaultMessage"), t.Identifier("m"))
+              ])
+          )
+        ])
     );
   },
   createCallExpression(t, functionToCall, callArguments) {
     return t.callExpression(functionToCall, callArguments);
   },
-  createFormatMessageCall(t, path, firstArgument) {
+  createFormatMessageCall(t, path, callee, firstArgument, otherArguments) {
     let memberExpression;
     let callArguments = [];
-    const callee = path.get("callee");
     const object = callee.isMemberExpression() && callee.get("object");
 
     /* We search for intl and props in the scope.
@@ -100,41 +99,39 @@ module.exports = {
      */
     if (path.scope.hasBinding("intl")) {
       memberExpression = t.MemberExpression(
-        t.identifier("intl"),
-        t.identifier("formatMessage")
+          t.identifier("intl"),
+          t.identifier("formatMessage")
       );
     } else if (
-      path.scope.hasBinding("props") &&
-      !(object && t.isThisExpression(object))
+        path.scope.hasBinding("props") &&
+        !(object && t.isThisExpression(object))
     ) {
       memberExpression = t.MemberExpression(
-        t.MemberExpression(t.identifier("props"), t.identifier("intl")),
-        t.identifier("formatMessage")
+          t.MemberExpression(t.identifier("props"), t.identifier("intl")),
+          t.identifier("formatMessage")
       );
     } else {
       memberExpression = t.MemberExpression(
-        t.MemberExpression(
-          t.MemberExpression(t.ThisExpression(), t.identifier("props")),
-          t.identifier("intl")
-        ),
-        t.identifier("formatMessage")
+          t.MemberExpression(
+              t.MemberExpression(t.ThisExpression(), t.identifier("props")),
+              t.identifier("intl")
+          ),
+          t.identifier("formatMessage")
       );
     }
     if (firstArgument) {
       callArguments = [
         firstArgument,
-        ...path
-          .get("arguments")
-          .slice(1)
-          .map(function(path) {
-            return path.node;
-          })
+        ...otherArguments
       ];
     } else {
-      callArguments = path.get("arguments").map(function(path) {
-        return path.node;
-      });
+      callArguments = otherArguments;
     }
     return t.CallExpression(memberExpression, callArguments);
+  },
+  createFormatMessageCallFromTemplateLiteralTag(t, path, callee, firstArgument, otherArguments) {
+    const expressions = [t.ArrayExpression(otherArguments)];
+    return this.createFormatMessageCall(t, path, callee, firstArgument, expressions);
+
   }
 };

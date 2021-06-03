@@ -1,11 +1,16 @@
-## Rationale 
+## Rationale
 
-This babel plugin transforms all calls to `i18n(string)` to its equivalent of the [React Intl](https://github.com/formatjs/react-intl) library.
+This babel plugin transforms all calls to `i18n(string)` or the tagged template ``i18n`templateLiteral``` to its equivalent of the [React Intl](https://github.com/formatjs/react-intl) library.
 For example:
 
 ```
 render(props) {
-  return <p>{i18n('Hello there')}</p>;
+  const from = 'this babel plugin';
+  return (
+    <p>
+        {i18n('Hello there')}
+        {i18n` from ${from}!`}
+    </p>);
 }
 ```
 
@@ -20,10 +25,14 @@ render(props) {
         defaultMessage: 'Hello there'
         })
       }
+      {props.intl.formatMessage({
+        id: 'from ${0}',
+        defaultMessage: 'from ${0}'
+      ), [ from ]}
     </p>);
 }
 ```
-Together with the use of [React Intl babel plugin](https://github.com/formatjs/formatjs/tree/master/packages/babel-plugin-react-intl) these calls will be picked u
+Together with the use of [React Intl babel plugin](https://github.com/formatjs/formatjs/tree/master/packages/babel-plugin-react-intl) these calls will be picked up
 and the `.json` files with the messages are generated automatically.
 
 ## Usage
@@ -83,5 +92,3 @@ function messageBasedOnRandom(intl) {
 ```
 
 The last call is transformed then transformed to `intl.formatMessage(messages[message])`.
-
-

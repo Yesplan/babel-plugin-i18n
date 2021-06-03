@@ -1,31 +1,25 @@
+const someone = 'Einstein';
+const subject = 'relativity'
+
 function functionWithIntl(intl) {
   i18n('translation message');
+  i18n`translation message`;
+  i18n('translation message from {someone} about {subject}', { someone, subject });
+  i18n`translation message from ${someone} about ${subject}`;
 }
 
 function functionWithProps(props) {
-  i18n('translation message')
+  i18n('translation message');
+  i18n`translation message`;
+  i18n('translation message from {someone} about {subject}', { someone, subject });
+  i18n`translation message from ${someone} about ${subject}`;
 }
 
 function functionWithoutIntlAndProps() {
   i18n('translation message');
-}
-
-function functionWithIntlTemplateLiteral(intl) {
-  const someone = 'hello world';
-  i18n(`translation message`);
-  i18n(`translation message from ${someone}`)
-}
-
-function functionWithPropsTemplateLiteral(props) {
-  const someone = 'hello world';
-  i18n(`translation message`);
-  i18n(`translation message from ${someone}`)
-}
-
-function functionWithoutIntlAndPropsTemplateLiteral() {
-  const someone = 'hello world';
-  i18n(`translation message`);
-  i18n(`translation message from ${someone}`)
+  i18n`translation message`;
+  i18n('translation message from {someone} about {subject}', { someone, subject });
+  i18n`translation message from ${someone} about ${subject}`;
 }
 
 function functionWithMultipleCalls(intl, arg1, arg2) {
