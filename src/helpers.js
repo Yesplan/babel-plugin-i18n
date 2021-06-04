@@ -109,11 +109,12 @@ module.exports = {
         !(object && t.isThisExpression(object))
     ) {
       const conditionExpression = t.MemberExpression(t.identifier("props"), t.identifier("intl"));
-      const propsIntlExpression = t.MemberExpression(t.identifier("props"), t.identifier("intl"));
+      const intlObjectExpression = t.ObjectExpression([ t.ObjectProperty(t.identifier("intl"), t.identifier(globalIntlIdentifier)) ]);
       memberExpression = t.MemberExpression(
-          t.conditionalExpression(conditionExpression, propsIntlExpression, t.identifier(globalIntlIdentifier)),
-          t.identifier("formatMessage")
-      );
+        t.MemberExpression(
+          t.conditionalExpression(conditionExpression, t.identifier("props"), intlObjectExpression),
+          t.identifier("intl")),
+        t.identifier("formatMessage"));
     } else {
       const conditionExpression = t.LogicalExpression("&&",
         t.ThisExpression(),
@@ -122,14 +123,13 @@ module.exports = {
           t.MemberExpression(
             t.MemberExpression(t.ThisExpression(), t.identifier("props")),
             t.identifier("intl"))));
-      const thisPropsIntlExpression = t.MemberExpression(
-        t.MemberExpression(t.ThisExpression(), t.identifier("props")),
-        t.identifier("intl")
-      );
+      const thisPropsExpression = t.MemberExpression(t.ThisExpression(), t.identifier("props"));
+      const intlObjectExpression = t.ObjectExpression([ t.ObjectProperty(t.identifier("intl"), t.identifier(globalIntlIdentifier)) ]);
       memberExpression = t.MemberExpression(
-        t.conditionalExpression(conditionExpression, thisPropsIntlExpression, t.identifier(globalIntlIdentifier)),
-        t.identifier("formatMessage")
-      );
+        t.MemberExpression(
+          t.conditionalExpression(conditionExpression, thisPropsExpression, intlObjectExpression),
+          t.identifier("intl")),
+        t.identifier("formatMessage"));
     }
     if (firstArgument) {
       callArguments = [
