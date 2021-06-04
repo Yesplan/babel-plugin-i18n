@@ -1,5 +1,7 @@
 const generate = require("@babel/generator")["default"];
 
+const globalIntlIdentifier = "gintl";
+
 module.exports = {
   processFirstArgumentOfCall: function(path, t) {
     const firstArgument = path.get("arguments")[0];
@@ -106,17 +108,27 @@ module.exports = {
         path.scope.hasBinding("props") &&
         !(object && t.isThisExpression(object))
     ) {
+      const conditionExpression = t.MemberExpression(t.identifier("props"), t.identifier("intl"));
+      const propsIntlExpression = t.MemberExpression(t.identifier("props"), t.identifier("intl"));
       memberExpression = t.MemberExpression(
-          t.MemberExpression(t.identifier("props"), t.identifier("intl")),
+          t.conditionalExpression(conditionExpression, propsIntlExpression, t.identifier(globalIntlIdentifier)),
           t.identifier("formatMessage")
       );
     } else {
-      memberExpression = t.MemberExpression(
+      const conditionExpression = t.LogicalExpression("&&",
+        t.ThisExpression(),
+        t.LogicalExpression("&&",
+          t.MemberExpression(t.ThisExpression(), t.identifier("props")),
           t.MemberExpression(
-              t.MemberExpression(t.ThisExpression(), t.identifier("props")),
-              t.identifier("intl")
-          ),
-          t.identifier("formatMessage")
+            t.MemberExpression(t.ThisExpression(), t.identifier("props")),
+            t.identifier("intl"))));
+      const thisPropsIntlExpression = t.MemberExpression(
+        t.MemberExpression(t.ThisExpression(), t.identifier("props")),
+        t.identifier("intl")
+      );
+      memberExpression = t.MemberExpression(
+        t.conditionalExpression(conditionExpression, thisPropsIntlExpression, t.identifier(globalIntlIdentifier)),
+        t.identifier("formatMessage")
       );
     }
     if (firstArgument) {
