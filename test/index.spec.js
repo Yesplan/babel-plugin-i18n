@@ -28,3 +28,27 @@ pluginTester({
     }
   }
 });
+
+pluginTester({
+  plugin,
+  pluginOptions: {
+    alwaysUseGlobal: true
+  },
+  tests: {
+    "Option alwaysUseGlobal" : {
+      code: `
+        function f(intl) {
+          i18n("Translation message")
+        }`,
+      output: `
+        function f(intl) {
+          ({
+            intl: $intl
+          }).intl.formatMessage({
+            id: "Translation message",
+            defaultMessage: "Translation message"
+          });
+        }`
+    }
+  }
+});

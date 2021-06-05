@@ -87,17 +87,23 @@ module.exports = {
   createCallExpression(t, functionToCall, callArguments) {
     return t.callExpression(functionToCall, callArguments);
   },
-  createFormatMessageCall(t, path, callee, firstArgument, otherArguments, globalIntlIdentifier) {
+  createFormatMessageCall(t, path, callee, firstArgument, otherArguments, { globalIntlIdentifier, alwaysUseGlobal }) {
     let memberExpression;
     let callArguments = [];
     const object = callee.isMemberExpression() && callee.get("object");
 
-    /* We search for intl and props in the scope.
+    /* Unless alwaysUseGlobal is true, we search for intl and props in the scope.
       If intl is in scope, the call is of the form intl.formatMessage,
       if props is in scope, the call is of the form props.intl.formatMessage,
       otherwise this.props.intl is used.
      */
-    if (path.scope.hasBinding("intl")) {
+    if (alwaysUseGlobal) {
+      memberExpression = t.MemberExpression(
+        t.MemberExpression(
+          t.ObjectExpression([ t.ObjectProperty(t.identifier("intl"), t.identifier(globalIntlIdentifier)) ]),
+          t.identifier("intl")),
+        t.identifier("formatMessage"));
+    } else if (path.scope.hasBinding("intl")) {
       memberExpression = t.MemberExpression(
           t.identifier("intl"),
           t.identifier("formatMessage")
@@ -139,9 +145,9 @@ module.exports = {
     }
     return t.CallExpression(memberExpression, callArguments);
   },
-  createFormatMessageCallFromTemplateLiteralTag(t, path, callee, firstArgument, otherArguments, globalIntlIdentifier) {
+  createFormatMessageCallFromTemplateLiteralTag(t, path, callee, firstArgument, otherArguments, options) {
     const expressions = [t.ArrayExpression(otherArguments)];
-    return this.createFormatMessageCall(t, path, callee, firstArgument, expressions, globalIntlIdentifier);
+    return this.createFormatMessageCall(t, path, callee, firstArgument, expressions, options);
 
   }
 };

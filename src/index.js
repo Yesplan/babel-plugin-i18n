@@ -6,19 +6,18 @@ const FUNCTION_NAMES = ["defineMessages"];
 module.exports = function({ types: t }) {
   let defineMessages = [];
   let nonStringLiterals = [];
-  let options = {};
 
-  function processI18nCall(path, globalIntlIdentifier) {
+  function processI18nCall(path, options) {
     const transformedFirstArg = Helpers.processFirstArgumentOfCall(path, t);
     const remainingArgs = path.get("arguments").slice(1).map(path => path.node);
     if (transformedFirstArg.type === "stringLiteral" || transformedFirstArg.type === "templateLiteral") {
       path.replaceWith(
-          Helpers.createFormatMessageCall(t, path, path.get("callee"), transformedFirstArg.argument, remainingArgs, globalIntlIdentifier));
+          Helpers.createFormatMessageCall(t, path, path.get("callee"), transformedFirstArg.argument, remainingArgs, options));
     } else if (transformedFirstArg.type === "other") {
       /* Called with non-string literal, add to nonStringLiterals collection to be checked at the end of the program */
       nonStringLiterals.push(transformedFirstArg.original);
       path.replaceWith(
-          Helpers.createFormatMessageCall(t, path, path.get("callee"), transformedFirstArg.argument, remainingArgs, globalIntlIdentifier));
+          Helpers.createFormatMessageCall(t, path, path.get("callee"), transformedFirstArg.argument, remainingArgs, options));
     }
   }
 
@@ -27,7 +26,6 @@ module.exports = function({ types: t }) {
     pre(state) {
       defineMessages = [];
       nonStringLiterals = [];
-      options = state.options;
     },
     /*  To make sure that are transformations take place before the babel-plugin-react-intl picks up
         the messages, we declare the visitor on the Program level instead of CallExpression.
@@ -39,10 +37,11 @@ module.exports = function({ types: t }) {
             file: {
               opts: { filename }
             },
-            opts
+            opts: specifiedOptions
           }
       ) {
-        const globalIntlIdentifier = opts.globalIntl || "$intl";
+        const { globalIntl: globalIntlIdentifier = "$intl", alwaysUseGlobal = false } = specifiedOptions;
+        const options = { globalIntlIdentifier, alwaysUseGlobal };
         programPath.traverse({
           CallExpression: path => {
             const callee = path.get("callee");
@@ -54,7 +53,7 @@ module.exports = function({ types: t }) {
                 (callee.isIdentifier() && callee.node.name === "i18n") ||
                 Helpers.isI18nMessageCall(callee)
             )
-              processI18nCall(path, globalIntlIdentifier);
+              processI18nCall(path, options);
             else if (
                 Helpers.referencesImport(callee, MODULE_NAME, FUNCTION_NAMES)
             ) {
@@ -91,7 +90,7 @@ module.exports = function({ types: t }) {
                       tag,
                       Helpers.createIntlMessage(t, t.StringLiteral(taggedTemplateTranslationString)),
                       expressions,
-                      globalIntlIdentifier)
+                      options)
               );
             }
           }
