@@ -8,17 +8,17 @@ module.exports = function({ types: t }) {
   let nonStringLiterals = [];
   let options = {};
 
-  function processI18nCall(path) {
+  function processI18nCall(path, globalIntlIdentifier) {
     const transformedFirstArg = Helpers.processFirstArgumentOfCall(path, t);
     const remainingArgs = path.get("arguments").slice(1).map(path => path.node);
     if (transformedFirstArg.type === "stringLiteral" || transformedFirstArg.type === "templateLiteral") {
       path.replaceWith(
-          Helpers.createFormatMessageCall(t, path, path.get("callee"), transformedFirstArg.argument, remainingArgs));
+          Helpers.createFormatMessageCall(t, path, path.get("callee"), transformedFirstArg.argument, remainingArgs, globalIntlIdentifier));
     } else if (transformedFirstArg.type === "other") {
       /* Called with non-string literal, add to nonStringLiterals collection to be checked at the end of the program */
       nonStringLiterals.push(transformedFirstArg.original);
       path.replaceWith(
-          Helpers.createFormatMessageCall(t, path, path.get("callee"), transformedFirstArg.argument, remainingArgs));
+          Helpers.createFormatMessageCall(t, path, path.get("callee"), transformedFirstArg.argument, remainingArgs, globalIntlIdentifier));
     }
   }
 
@@ -38,9 +38,11 @@ module.exports = function({ types: t }) {
           {
             file: {
               opts: { filename }
-            }
+            },
+            opts
           }
       ) {
+        const globalIntlIdentifier = opts.globalIntl || "$intl";
         programPath.traverse({
           CallExpression: path => {
             const callee = path.get("callee");
@@ -52,7 +54,7 @@ module.exports = function({ types: t }) {
                 (callee.isIdentifier() && callee.node.name === "i18n") ||
                 Helpers.isI18nMessageCall(callee)
             )
-              processI18nCall(path);
+              processI18nCall(path, globalIntlIdentifier);
             else if (
                 Helpers.referencesImport(callee, MODULE_NAME, FUNCTION_NAMES)
             ) {
@@ -88,7 +90,8 @@ module.exports = function({ types: t }) {
                       path,
                       tag,
                       Helpers.createIntlMessage(t, t.StringLiteral(taggedTemplateTranslationString)),
-                      expressions)
+                      expressions,
+                      globalIntlIdentifier)
               );
             }
           }

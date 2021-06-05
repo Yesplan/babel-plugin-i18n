@@ -25,19 +25,19 @@ function functionWithIntl(intl) {
 
 function functionWithProps(props) {
   (props.intl ? props : {
-    intl: gintl
+    intl: $intl
   }).intl.formatMessage({
     id: "translation message",
     defaultMessage: "translation message"
   });
   (props.intl ? props : {
-    intl: gintl
+    intl: $intl
   }).intl.formatMessage({
     id: "translation message",
     defaultMessage: "translation message"
   }, []);
   (props.intl ? props : {
-    intl: gintl
+    intl: $intl
   }).intl.formatMessage({
     id: "translation message from {someone} about {subject}",
     defaultMessage: "translation message from {someone} about {subject}"
@@ -46,7 +46,7 @@ function functionWithProps(props) {
     subject
   });
   (props.intl ? props : {
-    intl: gintl
+    intl: $intl
   }).intl.formatMessage({
     id: "translation message from {0} about {1}",
     defaultMessage: "translation message from {0} about {1}"
@@ -55,19 +55,19 @@ function functionWithProps(props) {
 
 function functionWithoutIntlAndProps() {
   (this && this.props && this.props.intl ? this.props : {
-    intl: gintl
+    intl: $intl
   }).intl.formatMessage({
     id: "translation message",
     defaultMessage: "translation message"
   });
   (this && this.props && this.props.intl ? this.props : {
-    intl: gintl
+    intl: $intl
   }).intl.formatMessage({
     id: "translation message",
     defaultMessage: "translation message"
   }, []);
   (this && this.props && this.props.intl ? this.props : {
-    intl: gintl
+    intl: $intl
   }).intl.formatMessage({
     id: "translation message from {someone} about {subject}",
     defaultMessage: "translation message from {someone} about {subject}"
@@ -76,7 +76,7 @@ function functionWithoutIntlAndProps() {
     subject
   });
   (this && this.props && this.props.intl ? this.props : {
-    intl: gintl
+    intl: $intl
   }).intl.formatMessage({
     id: "translation message from {0} about {1}",
     defaultMessage: "translation message from {0} about {1}"
@@ -99,7 +99,7 @@ function functionWithMultipleCalls(intl, arg1, arg2) {
 
 function functionWithDifferentThisScopes(props) {
   (props.intl ? props : {
-    intl: gintl
+    intl: $intl
   }).intl.formatMessage({
     id: "translation message",
     defaultMessage: "translation message"
@@ -107,13 +107,13 @@ function functionWithDifferentThisScopes(props) {
 
   const innerFunction = function (props) {
     (this && this.props && this.props.intl ? this.props : {
-      intl: gintl
+      intl: $intl
     }).intl.formatMessage({
       id: "translation in this scope",
       defaultMessage: "translation in this scope"
     });
     (props.intl ? props : {
-      intl: gintl
+      intl: $intl
     }).intl.formatMessage({
       id: "translation in props scope",
       defaultMessage: "translation in props scope"

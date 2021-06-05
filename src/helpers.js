@@ -1,7 +1,5 @@
 const generate = require("@babel/generator")["default"];
 
-const globalIntlIdentifier = "gintl";
-
 module.exports = {
   processFirstArgumentOfCall: function(path, t) {
     const firstArgument = path.get("arguments")[0];
@@ -89,7 +87,7 @@ module.exports = {
   createCallExpression(t, functionToCall, callArguments) {
     return t.callExpression(functionToCall, callArguments);
   },
-  createFormatMessageCall(t, path, callee, firstArgument, otherArguments) {
+  createFormatMessageCall(t, path, callee, firstArgument, otherArguments, globalIntlIdentifier) {
     let memberExpression;
     let callArguments = [];
     const object = callee.isMemberExpression() && callee.get("object");
@@ -141,9 +139,9 @@ module.exports = {
     }
     return t.CallExpression(memberExpression, callArguments);
   },
-  createFormatMessageCallFromTemplateLiteralTag(t, path, callee, firstArgument, otherArguments) {
+  createFormatMessageCallFromTemplateLiteralTag(t, path, callee, firstArgument, otherArguments, globalIntlIdentifier) {
     const expressions = [t.ArrayExpression(otherArguments)];
-    return this.createFormatMessageCall(t, path, callee, firstArgument, expressions);
+    return this.createFormatMessageCall(t, path, callee, firstArgument, expressions, globalIntlIdentifier);
 
   }
 };
