@@ -21,6 +21,32 @@ module.exports = function({ types: t }) {
     }
   }
 
+  function processI18nDefineCall(path, options) {
+    const firstArgument = path.get("arguments")[0];
+    if (t.isArrayExpression(firstArgument)) {
+      const elements = firstArgument.get("elements");
+      const strings = elements.map((element) => {
+        if (t.isStringLiteral(element)) {
+          return element.node.value;
+        } else {
+          throw path.buildCodeFrameError('Argument expression to call of "i18nDefine" must be an array expression containing only string literals')
+        }
+      });
+      path.replaceWith(
+        t.FunctionExpression(
+          null,
+          [t.identifier("intl")],
+          t.BlockStatement(
+            strings.map((string) =>
+              t.ExpressionStatement(
+                t.CallExpression(
+                  t.MemberExpression(t.identifier("intl"), t.identifier("formatMessage")),
+                  [Helpers.createIntlMessage(t, t.StringLiteral(string))]))))));
+    } else {
+      throw path.buildCodeFrameError('Argument expression to call of "i18nDefine" must be an array expression')
+    }
+  }
+
   return {
     name: "i18n",
     pre(state) {
@@ -45,6 +71,9 @@ module.exports = function({ types: t }) {
         programPath.traverse({
           CallExpression: path => {
             const callee = path.get("callee");
+            if (callee.isIdentifier() && callee.node.name === "i18nDefine") {
+              processI18nDefineCall(path, options);
+            }
             /* Search for calls to i18n:
              *   i18n(args)
              *   object.i18n(args)

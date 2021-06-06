@@ -95,3 +95,24 @@ pluginTester({
     }
   }
 });
+
+pluginTester({
+  plugin,
+  tests: {
+    "i18nDefine" : {
+      code: 'i18nDefine(["Translation message", "Translation message {1}"]);',
+      output: `
+        (function (intl) {
+          intl.formatMessage({
+            id: "Translation message",
+            defaultMessage: "Translation message"
+          });
+          intl.formatMessage({
+            id: "Translation message {1}",
+            defaultMessage: "Translation message {1}"
+          });
+        });
+      `
+    }
+  }
+});
