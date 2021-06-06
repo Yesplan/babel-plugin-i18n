@@ -52,3 +52,46 @@ pluginTester({
     }
   }
 });
+
+pluginTester({
+  plugin,
+  pluginOptions: {
+    i18nMessageCalls: "ignore"
+  },
+  tests: {
+    "Option i18nMessageCalls: ignore" : {
+      code: `
+        function f() {
+          i18n("Translation message");
+          this.i18n("Translation message");
+        }`,
+      output: `
+        function f() {
+          (this && this.props && this.props.intl ? this.props : {
+            intl: $intl
+          }).intl.formatMessage({
+            id: "Translation message",
+            defaultMessage: "Translation message"
+          });
+          this.i18n("Translation message");
+        }`
+    }
+  }
+});
+
+pluginTester({
+  plugin,
+  pluginOptions: {
+    i18nMessageCalls: "error"
+  },
+  tests: {
+    "Option i18nMessageCalls: error" : {
+      code: `
+        function f() {
+          i18n("Translation message");
+          this.i18n("Translation message");
+        }`,
+      error: 'Use of "i18n" as message call while plugin option "i18nMessageCalls" is set to "error"'
+    }
+  }
+});

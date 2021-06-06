@@ -40,8 +40,8 @@ module.exports = function({ types: t }) {
             opts: specifiedOptions
           }
       ) {
-        const { globalIntl: globalIntlIdentifier = "$intl", alwaysUseGlobal = false } = specifiedOptions;
-        const options = { globalIntlIdentifier, alwaysUseGlobal };
+        const { globalIntl: globalIntlIdentifier = "$intl", alwaysUseGlobal = false, i18nMessageCalls = "process" } = specifiedOptions;
+        const options = { globalIntlIdentifier, alwaysUseGlobal, i18nMessageCalls };
         programPath.traverse({
           CallExpression: path => {
             const callee = path.get("callee");
@@ -49,12 +49,22 @@ module.exports = function({ types: t }) {
              *   i18n(args)
              *   object.i18n(args)
              *   this.object.i18n(args) */
-            if (
-                (callee.isIdentifier() && callee.node.name === "i18n") ||
-                Helpers.isI18nMessageCall(callee)
-            )
+            if (callee.isIdentifier() && callee.node.name === "i18n") {
               processI18nCall(path, options);
-            else if (
+            } else if (Helpers.isI18nMessageCall(callee)) {
+              switch(i18nMessageCalls) {
+                case "ignore":
+                  break;
+                case "process":
+                  processI18nCall(path, options);
+                  break;
+                case "error":
+                  throw path.buildCodeFrameError('Use of "i18n" as message call while plugin option "i18nMessageCalls" is set to "error"');
+                  break;
+                default:
+                  throw new Error(`Invalid value for option "i18nMessageCalls": ${i18nMessageCalls}`);
+              }
+            } else if (
                 Helpers.referencesImport(callee, MODULE_NAME, FUNCTION_NAMES)
             ) {
               const messagesObj = path.get("arguments")[0];

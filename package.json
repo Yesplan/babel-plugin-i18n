@@ -1,6 +1,6 @@
 {
   "name": "babel-plugin-i18n",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "src/index.js",
   "scripts": {
     "test": "./node_modules/.bin/jest test\n"
