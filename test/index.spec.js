@@ -116,3 +116,58 @@ pluginTester({
     }
   }
 });
+
+pluginTester({
+  plugin,
+  title: 'Calls of ‘i18n’ where the first argument expression is not a literal string',
+  tests: [
+    {
+      code: "i18n('Translation message (' + Math.random() + ')')",
+      output: `
+        (this && this.props && this.props.intl ? this.props : {
+          intl: $intl
+        }).intl.formatMessage(function (m) {
+          return {
+            id: m,
+            defaultMessage: m
+          };
+        }('Translation message (' + Math.random() + ')'));`
+    },
+    {
+      code: 'i18n(`Translation message template`)',
+      output: `
+        (this && this.props && this.props.intl ? this.props : {
+          intl: $intl
+        }).intl.formatMessage(function (m) {
+          return {
+            id: m,
+            defaultMessage: m
+          };
+        }(\`Translation message template\`));`
+    },
+    {
+      code: 'i18n(tagFunction`Tagged translation message template`)',
+      output: `
+        (this && this.props && this.props.intl ? this.props : {
+          intl: $intl
+        }).intl.formatMessage(function (m) {
+          return {
+            id: m,
+            defaultMessage: m
+          };
+        }(tagFunction\`Tagged translation message template\`));`
+    },
+    {
+      code: 'i18n(`Translation message template (${Math.random()})`)',
+      output: `
+        (this && this.props && this.props.intl ? this.props : {
+          intl: $intl
+        }).intl.formatMessage(function (m) {
+          return {
+            id: m,
+            defaultMessage: m
+          };
+        }(\`Translation message template (\${Math.random()})\`));`
+    }
+  ]
+});

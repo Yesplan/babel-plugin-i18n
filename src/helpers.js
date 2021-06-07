@@ -1,31 +1,6 @@
 const generate = require("@babel/generator")["default"];
 
 module.exports = {
-  processFirstArgumentOfCall: function(path, t) {
-    const firstArgument = path.get("arguments")[0];
-    if (t.isStringLiteral(firstArgument.node)) {
-      return {
-        type: "stringLiteral",
-        argument: this.createIntlMessage(t, t.StringLiteral(firstArgument.node.value))
-      };
-    } else if(t.isTemplateLiteral(firstArgument.node)) {
-      return {
-        type: "templateLiteral",
-        argument: this.createIntlMessage(t, t.templateLiteral(firstArgument.node.quasis, firstArgument.node.expressions))
-      }
-    } else {
-      return {
-        type: "other",
-        original: firstArgument,
-        argument: this.createCallExpression(
-            t,
-            this.createReturnMessageFunction(t),
-            [firstArgument.node]
-        )
-      };
-    }
-  },
-
   warnAboutNonStringLiteralArguments: function(nonStringLiterals, filename) {
     const argString = nonStringLiterals.map(arg => {
       const loc = arg.node.loc;

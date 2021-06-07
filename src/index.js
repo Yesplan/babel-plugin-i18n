@@ -8,17 +8,17 @@ module.exports = function({ types: t }) {
   let nonStringLiterals = [];
 
   function processI18nCall(path, options) {
-    const transformedFirstArg = Helpers.processFirstArgumentOfCall(path, t);
+    const firstArg = path.get("arguments")[0];
     const remainingArgs = path.get("arguments").slice(1).map(path => path.node);
-    if (transformedFirstArg.type === "stringLiteral" || transformedFirstArg.type === "templateLiteral") {
-      path.replaceWith(
-          Helpers.createFormatMessageCall(t, path, path.get("callee"), transformedFirstArg.argument, remainingArgs, options));
-    } else if (transformedFirstArg.type === "other") {
+    const isStringLiteral = t.isStringLiteral(firstArg.node);
+    const messageExp = (isStringLiteral)
+      ? Helpers.createIntlMessage(t, t.StringLiteral(firstArg.node.value))
+      : Helpers.createCallExpression(t, Helpers.createReturnMessageFunction(t), [firstArg.node]);
+    if (!isStringLiteral)
       /* Called with non-string literal, add to nonStringLiterals collection to be checked at the end of the program */
-      nonStringLiterals.push(transformedFirstArg.original);
-      path.replaceWith(
-          Helpers.createFormatMessageCall(t, path, path.get("callee"), transformedFirstArg.argument, remainingArgs, options));
-    }
+      nonStringLiterals.push(firstArg);
+    path.replaceWith(
+      Helpers.createFormatMessageCall(t, path, path.get("callee"), messageExp, remainingArgs, options));
   }
 
   function processI18nDefineCall(path, options) {
