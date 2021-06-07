@@ -83,6 +83,21 @@ function functionWithoutIntlAndProps() {
   }, [someone, subject]);
 }
 
+function functionWithoutIntlAndPropsWithEscapeSequences() {
+  (this && this.props && this.props.intl ? this.props : {
+    intl: $intl
+  }).intl.formatMessage({
+    id: "!\n",
+    defaultMessage: "!\n"
+  });
+  (this && this.props && this.props.intl ? this.props : {
+    intl: $intl
+  }).intl.formatMessage({
+    id: "{0}!{1}\n",
+    defaultMessage: "{0}!{1}\n"
+  }, [someone, subject]);
+}
+
 function functionWithMultipleCalls(intl, arg1, arg2) {
   const msg = intl.formatMessage({
     id: "translation message",

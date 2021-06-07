@@ -11,6 +11,17 @@ pluginTester({
 
 pluginTester({
   plugin,
+  tests: [
+    {
+      title: 'Template literal with quasis without ‘cooked’',
+      code: 'i18n`\\u0041${Math.random()}\\u0042\\unrecognized${Math.random}\\u0043`',
+      error: 'Use of unsupported template literal containing: \\u0042\\unrecognized'
+    }
+  ]
+});
+
+pluginTester({
+  plugin,
   pluginOptions: {
     globalIntl: "gintl"
   },

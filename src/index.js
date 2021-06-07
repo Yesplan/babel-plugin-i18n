@@ -124,7 +124,12 @@ module.exports = function({ types: t }) {
             const tag = path.get('tag');
             const quasi = path.get('quasi');
             if (tag.isIdentifier() && tag.node.name === "i18n" && quasi.isTemplateLiteral()) {
-              const quasis = quasi.get('quasis').map(quasi => quasi.node.value.raw);
+              const quasis = quasi.get('quasis').map(quasi => {
+                const cooked = quasi.node.value.cooked;
+                if (cooked === null)
+                  throw path.buildCodeFrameError(`Use of unsupported template literal containing: ${quasi.node.value.raw}`);
+                return cooked;
+              });
               const expressions = quasi.get('expressions').map(exp => exp.node);
               const offset = oneBasedTemplateParameters ? 0 : -1;
               const taggedTemplateTranslationString = quasis.reduce((joined, string, index) => `${joined}{${index + offset}}${string}`);

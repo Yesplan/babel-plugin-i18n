@@ -22,6 +22,11 @@ function functionWithoutIntlAndProps() {
   i18n`translation message from ${someone} about ${subject}`;
 }
 
+function functionWithoutIntlAndPropsWithEscapeSequences() {
+  i18n('\u0021\u000A');
+  i18n`${someone}\u0021${subject}\u000A`;
+}
+
 function functionWithMultipleCalls(intl, arg1, arg2) {
   const msg = i18n('translation message');
   if(arg1 === arg2)
