@@ -98,6 +98,26 @@ pluginTester({
 
 pluginTester({
   plugin,
+  pluginOptions: {
+    oneBasedTemplateParameters: true
+  },
+  title: 'Option "oneBasedTemplateParameters"',
+  tests: [
+    {
+      code: 'i18n`first: ${Math.random() * 10}, second: ${Math.random() * 20}`',
+      output: `
+        (this && this.props && this.props.intl ? this.props : {
+          intl: $intl
+        }).intl.formatMessage({
+          id: "first: {1}, second: {2}",
+          defaultMessage: "first: {1}, second: {2}"
+        }, [null, Math.random() * 10, Math.random() * 20]);`
+    }
+  ]
+});
+
+pluginTester({
+  plugin,
   tests: {
     "i18nDefine" : {
       code: 'i18nDefine(["Translation message", "Translation message {1}"]);',

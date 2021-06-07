@@ -66,8 +66,13 @@ module.exports = function({ types: t }) {
             opts: specifiedOptions
           }
       ) {
-        const { globalIntl: globalIntlIdentifier = "$intl", alwaysUseGlobal = false, i18nMessageCalls = "process" } = specifiedOptions;
-        const options = { globalIntlIdentifier, alwaysUseGlobal, i18nMessageCalls };
+        const {
+          globalIntl: globalIntlIdentifier = "$intl",
+          alwaysUseGlobal = false,
+          i18nMessageCalls = "process",
+          oneBasedTemplateParameters = false
+        } = specifiedOptions;
+        const options = { globalIntlIdentifier, alwaysUseGlobal, i18nMessageCalls, oneBasedTemplateParameters };
         programPath.traverse({
           CallExpression: path => {
             const callee = path.get("callee");
@@ -121,14 +126,17 @@ module.exports = function({ types: t }) {
             if (tag.isIdentifier() && tag.node.name === "i18n" && quasi.isTemplateLiteral()) {
               const quasis = quasi.get('quasis').map(quasi => quasi.node.value.raw);
               const expressions = quasi.get('expressions').map(exp => exp.node);
-              const taggedTemplateTranslationString = quasis.reduce((joined, string, index) => `${joined}{${index - 1}}${string}`);
+              const offset = oneBasedTemplateParameters ? 0 : -1;
+              const taggedTemplateTranslationString = quasis.reduce((joined, string, index) => `${joined}{${index + offset}}${string}`);
               path.replaceWith(
                   Helpers.createFormatMessageCallFromTemplateLiteralTag(
                       t,
                       path,
                       tag,
                       Helpers.createIntlMessage(t, t.StringLiteral(taggedTemplateTranslationString)),
-                      expressions,
+                      (oneBasedTemplateParameters)
+                        ? [t.NullLiteral(), ...expressions]
+                        : expressions,
                       options)
               );
             }
