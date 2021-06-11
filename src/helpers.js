@@ -38,11 +38,14 @@ module.exports = {
   },
 
   /* AST nodes */
-  createIntlMessage(t, messageNode) {
-    return t.ObjectExpression([
-      t.ObjectProperty(t.Identifier("id"), messageNode),
-      t.ObjectProperty(t.Identifier("defaultMessage"), messageNode)
-    ]);
+  createIntlMessage(t, messageNode, options) {
+    const properties = [t.ObjectProperty(t.Identifier("id"), messageNode),
+      t.ObjectProperty(t.Identifier("defaultMessage"), messageNode)]
+    if (options.includeDescription) {
+      const descriptionNode = t.StringLiteral(options.filename.slice(options.filename.lastIndexOf('/') + 1));
+      properties.push(t.ObjectProperty(t.Identifier("description"), descriptionNode))
+    }
+    return t.ObjectExpression(properties);
   },
   /* function(m) {return {id: m, defaultMessage: m}; } */
   createReturnMessageFunction(t) {
@@ -74,10 +77,10 @@ module.exports = {
      */
     if (alwaysUseGlobal) {
       memberExpression = t.MemberExpression(
-        t.MemberExpression(
-          t.ObjectExpression([ t.ObjectProperty(t.identifier("intl"), t.identifier(globalIntlIdentifier)) ]),
-          t.identifier("intl")),
-        t.identifier("formatMessage"));
+          t.MemberExpression(
+              t.ObjectExpression([ t.ObjectProperty(t.identifier("intl"), t.identifier(globalIntlIdentifier)) ]),
+              t.identifier("intl")),
+          t.identifier("formatMessage"));
     } else if (path.scope.hasBinding("intl")) {
       memberExpression = t.MemberExpression(
           t.identifier("intl"),
@@ -90,25 +93,25 @@ module.exports = {
       const conditionExpression = t.MemberExpression(t.identifier("props"), t.identifier("intl"));
       const intlObjectExpression = t.ObjectExpression([ t.ObjectProperty(t.identifier("intl"), t.identifier(globalIntlIdentifier)) ]);
       memberExpression = t.MemberExpression(
-        t.MemberExpression(
-          t.conditionalExpression(conditionExpression, t.identifier("props"), intlObjectExpression),
-          t.identifier("intl")),
-        t.identifier("formatMessage"));
+          t.MemberExpression(
+              t.conditionalExpression(conditionExpression, t.identifier("props"), intlObjectExpression),
+              t.identifier("intl")),
+          t.identifier("formatMessage"));
     } else {
       const conditionExpression = t.LogicalExpression("&&",
-        t.ThisExpression(),
-        t.LogicalExpression("&&",
-          t.MemberExpression(t.ThisExpression(), t.identifier("props")),
-          t.MemberExpression(
-            t.MemberExpression(t.ThisExpression(), t.identifier("props")),
-            t.identifier("intl"))));
+          t.ThisExpression(),
+          t.LogicalExpression("&&",
+              t.MemberExpression(t.ThisExpression(), t.identifier("props")),
+              t.MemberExpression(
+                  t.MemberExpression(t.ThisExpression(), t.identifier("props")),
+                  t.identifier("intl"))));
       const thisPropsExpression = t.MemberExpression(t.ThisExpression(), t.identifier("props"));
       const intlObjectExpression = t.ObjectExpression([ t.ObjectProperty(t.identifier("intl"), t.identifier(globalIntlIdentifier)) ]);
       memberExpression = t.MemberExpression(
-        t.MemberExpression(
-          t.conditionalExpression(conditionExpression, thisPropsExpression, intlObjectExpression),
-          t.identifier("intl")),
-        t.identifier("formatMessage"));
+          t.MemberExpression(
+              t.conditionalExpression(conditionExpression, thisPropsExpression, intlObjectExpression),
+              t.identifier("intl")),
+          t.identifier("formatMessage"));
     }
     if (firstArgument) {
       callArguments = [

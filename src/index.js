@@ -4,21 +4,16 @@ const MODULE_NAME = "react-intl";
 const FUNCTION_NAMES = ["defineMessages"];
 
 module.exports = function({ types: t }) {
-  let defineMessages = [];
-  let nonStringLiterals = [];
 
   function processI18nCall(path, options) {
     const firstArg = path.get("arguments")[0];
     const remainingArgs = path.get("arguments").slice(1).map(path => path.node);
     const isStringLiteral = t.isStringLiteral(firstArg.node);
     const messageExp = (isStringLiteral)
-      ? Helpers.createIntlMessage(t, t.StringLiteral(firstArg.node.value))
-      : Helpers.createCallExpression(t, Helpers.createReturnMessageFunction(t), [firstArg.node]);
-    if (!isStringLiteral)
-      /* Called with non-string literal, add to nonStringLiterals collection to be checked at the end of the program */
-      nonStringLiterals.push(firstArg);
+        ? Helpers.createIntlMessage(t, t.StringLiteral(firstArg.node.value), options)
+        : Helpers.createCallExpression(t, Helpers.createReturnMessageFunction(t), [firstArg.node]);
     path.replaceWith(
-      Helpers.createFormatMessageCall(t, path, path.get("callee"), messageExp, remainingArgs, options));
+        Helpers.createFormatMessageCall(t, path, path.get("callee"), messageExp, remainingArgs, options));
   }
 
   function processI18nDefineCall(path, options) {
@@ -33,15 +28,15 @@ module.exports = function({ types: t }) {
         }
       });
       path.replaceWith(
-        t.FunctionExpression(
-          null,
-          [t.identifier("intl")],
-          t.BlockStatement(
-            strings.map((string) =>
-              t.ExpressionStatement(
-                t.CallExpression(
-                  t.MemberExpression(t.identifier("intl"), t.identifier("formatMessage")),
-                  [Helpers.createIntlMessage(t, t.StringLiteral(string))]))))));
+          t.FunctionExpression(
+              null,
+              [t.identifier("intl")],
+              t.BlockStatement(
+                  strings.map((string) =>
+                      t.ExpressionStatement(
+                          t.CallExpression(
+                              t.MemberExpression(t.identifier("intl"), t.identifier("formatMessage")),
+                              [Helpers.createIntlMessage(t, t.StringLiteral(string), options)]))))));
     } else {
       throw path.buildCodeFrameError('Argument expression to call of "i18nDefine" must be an array expression')
     }
@@ -49,10 +44,7 @@ module.exports = function({ types: t }) {
 
   return {
     name: "i18n",
-    pre(state) {
-      defineMessages = [];
-      nonStringLiterals = [];
-    },
+    pre(state) {},
     /*  To make sure that are transformations take place before the babel-plugin-react-intl picks up
         the messages, we declare the visitor on the Program level instead of CallExpression.
         This can possibly be changed once plugin ordering in babel is finalized. */
@@ -70,9 +62,10 @@ module.exports = function({ types: t }) {
           globalIntl: globalIntlIdentifier = "$intl",
           alwaysUseGlobal = false,
           i18nMessageCalls = "process",
-          oneBasedTemplateParameters = false
+          oneBasedTemplateParameters = false,
+          includeDescription = false
         } = specifiedOptions;
-        const options = { globalIntlIdentifier, alwaysUseGlobal, i18nMessageCalls, oneBasedTemplateParameters };
+        const options = { globalIntlIdentifier, alwaysUseGlobal, i18nMessageCalls, oneBasedTemplateParameters, filename, includeDescription };
         programPath.traverse({
           CallExpression: path => {
             const callee = path.get("callee");
@@ -98,26 +91,6 @@ module.exports = function({ types: t }) {
                 default:
                   throw new Error(`Invalid value for option "i18nMessageCalls": ${i18nMessageCalls}`);
               }
-            } else if (
-                Helpers.referencesImport(callee, MODULE_NAME, FUNCTION_NAMES)
-            ) {
-              const messagesObj = path.get("arguments")[0];
-              if (messagesObj.isObjectExpression()) {
-                messagesObj
-                    .get("properties")
-                    .map(prop => prop.get("value"))
-                    .forEach(prop => {
-                      const message = prop.node.properties.filter(
-                          keyValue => keyValue.key.name === "defaultMessage"
-                      );
-                      if (
-                          message &&
-                          message[0].value &&
-                          t.isStringLiteral(message[0].value)
-                      )
-                        defineMessages.push(message[0].value.value);
-                    });
-              }
             }
           },
           TaggedTemplateExpression: path => {
@@ -138,20 +111,15 @@ module.exports = function({ types: t }) {
                       t,
                       path,
                       tag,
-                      Helpers.createIntlMessage(t, t.StringLiteral(taggedTemplateTranslationString)),
+                      Helpers.createIntlMessage(t, t.StringLiteral(taggedTemplateTranslationString), options),
                       (oneBasedTemplateParameters)
-                        ? [t.NullLiteral(), ...expressions]
-                        : expressions,
+                          ? [t.NullLiteral(), ...expressions]
+                          : expressions,
                       options)
               );
             }
           }
         });
-        if (nonStringLiterals.length > 0)
-          Helpers.warnAboutNonStringLiteralArguments(
-              nonStringLiterals,
-              filename
-          );
       }
     },
   };
