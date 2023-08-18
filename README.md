@@ -56,10 +56,11 @@ This means that you *have to* pass the `intl` object from the React Intl library
 
 ### Special cases
 The plugin gives a warning when the `i18n` function is called with anything else than a String Literal as a first argument.
-This can be solved by defining the possible messages by using the `defineMessages` construct from the React Intl library.
+This can be solved by defining the possible messages by using the `i18nDefine` construct.
 
 The following program raises a warning, because the last call to `i18n` is with a non-string literal.
 ```
+// function from a library,... where i18n can't be used.
 function random() {
   if (Math.random() * 10 > 5) return 'Smaller than 5!';
   return 'Greater than 5!';
@@ -72,23 +73,23 @@ function messageBasedOnRandom(intl) {
 ```
 To solve this:
 ```
-import { defineMessages } from 'react-intl';
-const messages = defineMessages({
-  'Smaller than 5!': {
-    'id': 'Smaller than 5!',
-    'defaultMessage': 'Smaller than 5!')
-  },
-  'Greater than 5!': {
-    'id': 'Greater than 5!',
-    'defaultMessage': 'Greater than 5!'
-  }
-});
+i18nDefine([
+  'Smaller than 5!',
+  'Greater than 5!'
+]);
 
 function messageBasedOnRandom(intl) {
   const message = random();
-  return i18n('Result is: ') + i18n(messages[message]);
+  return i18n('Result is: ') + i18n(message);
 }
 
 ```
 
-The last call is transformed then transformed to `intl.formatMessage(messages[message])`.
+`i18n` ensures that the strings passed to it are picked up and will show up in the `json` files with the other strings that need to be translated.
+
+### Options
+- `gintl` (string, defaults to 'gintl'): name for the global _intl_ 
+- `alwaysUseGlobal` (boolean, defaults to false) in which case the existing behavior of preferring local variables is retained, if set to true, the global is always used instead
+- `i18nMessageCalls` (one of 'ignore', 'error' or the default 'process') allowing to configure whether ‘i18n’ message calls on an object should be processed, ignored or be treated as a source code error
+- `oneBasedTemplateParameters` (boolean, defaults to false) allowing to configure whether for an example like ``i18n`first: ${Math.random()}, second: ${Math.random()}` ``, the message is `first: {0}, second: {1}` (if set to false) or `first: {1}, second: {2}` (if set to true).
+- `includeDescription` (boolean, defaults to false) to control if a `description` property is added to the extracted messages, with the filename as value
